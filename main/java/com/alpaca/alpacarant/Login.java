@@ -1,5 +1,6 @@
 package com.alpaca.alpacarant;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.content.Intent;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
@@ -49,21 +51,17 @@ public class Login extends ActionBarActivity {
     }
 
     public void onLoginButtonClick(View v) {
-        JSONObject jsonObject;
-
         editUsername = (EditText) findViewById(R.id.editUsername);
         editPassword = (EditText) findViewById(R.id.editPassword);
 
         String username = editUsername.getText().toString();
         String password = editPassword.getText().toString();
-        Log.i("MyTag", "Beginning");
 
         if (username.length() == 0 || password.length() == 0) {
             Toast.makeText(getApplicationContext(), "Username or password field cannot be empty", Toast.LENGTH_SHORT).show();
         }
         else {
             sendPostRequest(username, password);
-
         }
     }
 
@@ -75,8 +73,6 @@ public class Login extends ActionBarActivity {
 
                 String paramUsername = params[0];
                 String paramPassword = params[1];
-
-                Log.i("doInBackground", "username: " + paramUsername + " password " + paramPassword);
 
                 //instantiates httpclient to make request
                 HttpClient httpClient = new DefaultHttpClient();
@@ -92,8 +88,6 @@ public class Login extends ActionBarActivity {
                 List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>();
                 nameValuePairList.add(usernameBasicNameValuePair);
                 nameValuePairList.add(passwordBasicNameValuePAir);
-
-                Log.i("Namevaluepair: ", nameValuePairList.toString());
 
                 try{
                     //convert value to UrlEncodedFormEntity
@@ -120,8 +114,16 @@ public class Login extends ActionBarActivity {
                             stringBuilder.append(bufferedStrChunk);
                         }
 
-                        Log.i("Results: ", stringBuilder.toString());
-                        Log.i("Http status: ", "" + httpResponse.getStatusLine().getStatusCode());
+                        if (httpResponse.getStatusLine().getStatusCode() == 200){
+                            startActivity(new Intent(getApplicationContext(), MainPage.class));
+                        }
+                        else{
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(), "Incorrect username or password", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                         return stringBuilder.toString();
                     }   catch (Exception e) {
                         e.printStackTrace();
@@ -136,6 +138,10 @@ public class Login extends ActionBarActivity {
 
         SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
         sendPostReqAsyncTask.execute(username, password);
+    }
+
+    public void onRegisterButtonClick(View v) {
+        startActivity(new Intent(getApplicationContext(), Register.class));
     }
 
     @Override

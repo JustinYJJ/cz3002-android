@@ -53,7 +53,7 @@ public class Login extends ActionBarActivity {
 
         String username = editUsername.getText().toString();
         String password = editPassword.getText().toString();
-        Log.i("MyTag", "Hello");
+        Log.i("MyTag", "Beginning");
 
         if (username.length() == 0 || password.length() == 0) {
             Toast.makeText(getApplicationContext(), "Username or password field cannot be empty", Toast.LENGTH_SHORT).show();
@@ -61,6 +61,7 @@ public class Login extends ActionBarActivity {
             jsonObject = createJSONFile(username, password);
             try {
                 Log.i("Before: ", "Getting http response");
+                //I DO NOT KNOW HOW TO VERIFY WITH SERVER DATABASE
                 Networking networking = new Networking();
                 networking.execute("http://nturant.me/signin", jsonObject);
                 Log.i("After: ", "Logged in");

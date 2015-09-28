@@ -15,6 +15,7 @@ import android.widget.Toast;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -29,6 +30,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -57,91 +60,82 @@ public class Login extends ActionBarActivity {
 
         if (username.length() == 0 || password.length() == 0) {
             Toast.makeText(getApplicationContext(), "Username or password field cannot be empty", Toast.LENGTH_SHORT).show();
-        } else {
-            jsonObject = createJSONFile(username, password);
-            try {
-                Log.i("Before: ", "Getting http response");
-                //I DO NOT KNOW HOW TO VERIFY WITH SERVER DATABASE
-                Networking networking = new Networking();
-                networking.execute("http://nturant.me/signin", jsonObject);
-                Log.i("After: ", "Logged in");
+        }
+        else {
+            sendPostRequest(username, password);
 
-                startActivity(new Intent(Login.this, MainPage.class));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
-    public class Networking extends AsyncTask{
+    private void sendPostRequest(final String username, final String password) {
+        class SendPostReqAsyncTask extends AsyncTask<String, Void, String>{
 
-        @Override
-        protected Object doInBackground(Object[] params) {
-            try {
-                makeRequest((String) params[0], (JSONObject) params[1]);
-            } catch (Exception e) {
-                e.printStackTrace();
+            @Override
+            protected String doInBackground(String... params) {
+
+                String paramUsername = params[0];
+                String paramPassword = params[1];
+
+                Log.i("doInBackground", "username: " + paramUsername + " password " + paramPassword);
+
+                //instantiates httpclient to make request
+                HttpClient httpClient = new DefaultHttpClient();
+
+                //url with the post data
+                HttpPost httpPost = new HttpPost("http://nturant.me/signin");
+                httpPost.setHeader("accept", "application/json");
+
+                //create values to be passed into POST request
+                BasicNameValuePair usernameBasicNameValuePair = new BasicNameValuePair("username", paramUsername);
+                BasicNameValuePair passwordBasicNameValuePAir = new BasicNameValuePair("password", paramPassword);
+
+                List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>();
+                nameValuePairList.add(usernameBasicNameValuePair);
+                nameValuePairList.add(passwordBasicNameValuePAir);
+
+                Log.i("Namevaluepair: ", nameValuePairList.toString());
+
+                try{
+                    //convert value to UrlEncodedFormEntity
+                    UrlEncodedFormEntity urlEncodedFormEntity = new UrlEncodedFormEntity(nameValuePairList);
+
+                    //hands the entity to the request
+                    httpPost.setEntity(urlEncodedFormEntity);
+
+                    try{
+                        HttpResponse httpResponse = httpClient.execute(httpPost);
+
+                        //get HttpResponse content
+                        InputStream inputStream = httpResponse.getEntity().getContent();
+
+                        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+
+                        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                        StringBuilder stringBuilder = new StringBuilder();
+
+                        String bufferedStrChunk = null;
+
+                        while((bufferedStrChunk = bufferedReader.readLine()) != null){
+                            stringBuilder.append(bufferedStrChunk);
+                        }
+
+                        Log.i("Results: ", stringBuilder.toString());
+                        Log.i("Http status: ", "" + httpResponse.getStatusLine().getStatusCode());
+                        return stringBuilder.toString();
+                    }   catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                return null;
             }
-            return null;
-        }
-    }
-
-    private JSONObject createJSONFile(String username, String password) {
-        try {
-            JSONObject object = new JSONObject();
-
-            object.put("email", username);
-            object.put("password", password);
-            Log.i("JSON String: ", object.toString());
-
-            return object;
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        return null;
-    }
-
-    private void makeRequest(String url, JSONObject object) throws Exception {
-        Log.i("Inside makeRequest: ", "Beginning");
-        //instantiates httpclient to make request
-        HttpClient httpClient = new DefaultHttpClient();
-
-        Log.i("Inside makeRequest: ", "httpclient");
-        //url with the post data
-        HttpPost httpPost = new HttpPost(url);
-
-        Log.i("Inside makeRequest: ", "httppost");
-        //passes JSONObject to string entity
-        StringEntity stringEntity = new StringEntity(object.toString());
-        stringEntity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-
-        Log.i("Inside makeRequest: ", "stringentity");
-        //sets the post request as the resulting string
-        httpPost.setEntity(stringEntity);
-
-        Log.i("Inside makeRequest: ", "setentity");
-        //handles what is returned from the page
-        ResponseHandler responseHandler = new BasicResponseHandler();
-        Log.i("Inside makeRequest: ", "return");
-        HttpResponse httpResponse = (HttpResponse) httpClient.execute(httpPost, responseHandler);
-
-        if (httpResponse != null) {
-            StringBuilder sb = new StringBuilder();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-
-            String line;
-            while ((line = rd.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-
-            String result;
-            result = sb.toString();
-            Log.i("DataHandler", "Append String " + result);
-        }
-        else{
-            Log.i("DataHandler", "Httpresponse empty");
-        }
+        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
+        sendPostReqAsyncTask.execute(username, password);
     }
 
     @Override

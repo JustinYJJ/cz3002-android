@@ -115,6 +115,11 @@ public class Login extends ActionBarActivity {
                         }
 
                         if (httpResponse.getStatusLine().getStatusCode() == 200){
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(), "You have successfully logged in!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                             startActivity(new Intent(getApplicationContext(), MainPage.class));
                         }
                         else{

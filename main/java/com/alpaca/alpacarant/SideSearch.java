@@ -109,6 +109,15 @@ public class SideSearch extends Fragment {
 
                 try{
                     try{
+
+
+                        /*HttpGet httpGet1 = new HttpGet("http://nturant.me/logout");
+                        HttpResponse httpResponse1 = httpClient.execute(httpGet1);
+
+                        int status = httpResponse1.getStatusLine().getStatusCode();
+
+                        Log.i("Logging out: ", "" + status);*/
+
                         HttpResponse httpResponse = httpClient.execute(httpGet);
 
                         //get HttpResponse content
@@ -126,6 +135,7 @@ public class SideSearch extends Fragment {
                             stringBuilder.append(bufferedStrChunk);
                         }
 
+                        Log.i("Response: ", stringBuilder.toString());
                         Log.i("Status: ", "" + httpResponse.getStatusLine().getStatusCode());
                         return stringBuilder.toString();
                     }   catch (Exception e) {
@@ -142,5 +152,4 @@ public class SideSearch extends Fragment {
         SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
         sendPostReqAsyncTask.execute();
     }
-
 }

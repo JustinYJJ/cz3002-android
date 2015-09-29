@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.content.Intent;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,16 +20,23 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
@@ -74,8 +83,17 @@ public class Login extends ActionBarActivity {
                 String paramUsername = params[0];
                 String paramPassword = params[1];
 
+                //create local instance of cookie store
+                CookieStore cookieStore = new BasicCookieStore();
+
+                //create local HTTP context
+                HttpContext localContext = new BasicHttpContext();
+
+                //bind custom cookie store to local context
+                localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+
                 //instantiates httpclient to make request
-                HttpClient httpClient = new DefaultHttpClient();
+                DefaultHttpClient httpClient = new DefaultHttpClient();
 
                 //url with the post data
                 HttpPost httpPost = new HttpPost("http://nturant.me/signin");
@@ -97,7 +115,7 @@ public class Login extends ActionBarActivity {
                     httpPost.setEntity(urlEncodedFormEntity);
 
                     try{
-                        HttpResponse httpResponse = httpClient.execute(httpPost);
+                        HttpResponse httpResponse = httpClient.execute(httpPost, localContext);
 
                         //get HttpResponse content
                         InputStream inputStream = httpResponse.getEntity().getContent();
@@ -129,6 +147,12 @@ public class Login extends ActionBarActivity {
                                 }
                             });
                         }
+
+                        if (httpResponse.getEntity() != null){
+                            Log.i("Entity: ", "Not null");
+                            httpResponse.getEntity().consumeContent();
+                        }
+
                         return stringBuilder.toString();
                     }   catch (Exception e) {
                         e.printStackTrace();

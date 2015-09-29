@@ -6,12 +6,15 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +96,22 @@ public class MainPage extends ActionBarActivity {
         };
 
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
+    }
+
+    public void onPostRantButtonClick(View v){
+        //Get rant text
+        EditText editRant = (EditText) findViewById(R.id.editRant);
+        String rant = editRant.getText().toString();
+
+        //Get value of spinner
+        Spinner spinnerLifetime = (Spinner) findViewById(R.id.spinnerLifetime);
+        String lifetime = spinnerLifetime.getSelectedItem().toString();
+
+        Spinner spinnerViewtime = (Spinner) findViewById(R.id.spinnerViewtime);
+        String viewtime = spinnerViewtime.getSelectedItem().toString();
+
+        Log.i("Rant: ", rant);
+        Log.i("Life: ", lifetime + " " + viewtime);
     }
 
     @Override
